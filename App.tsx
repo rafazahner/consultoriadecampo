@@ -110,7 +110,7 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-white lg:flex">
       {/* SIDEBAR: Pantone Themed Branding */}
-      <aside className="lg:w-[480px] xl:w-[580px] bg-gradient-to-br from-[#2fabab]/5 via-[#c23c8e]/5 to-[#f08228]/5 border-r border-slate-100 relative lg:h-screen lg:sticky lg:top-0 flex flex-col items-center justify-center p-8 overflow-hidden">
+      <aside className="hidden lg:flex lg:w-[480px] xl:w-[580px] bg-gradient-to-br from-[#2fabab]/5 via-[#c23c8e]/5 to-[#f08228]/5 border-r border-slate-100 relative lg:h-screen lg:sticky lg:top-0 flex-col items-center justify-center p-8 overflow-hidden">
         {/* Glow Effects using exact Pantone palette */}
         <div className="absolute -top-24 -left-24 w-96 h-96 bg-[#2fabab]/15 rounded-full blur-[100px]"></div>
         <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-[#f08228]/15 rounded-full blur-[100px]"></div>
@@ -137,7 +137,7 @@ const App: React.FC = () => {
                 <img
                   src={LOGO_URL}
                   alt="Ultra Academia"
-                  className="h-28 w-auto object-contain transform group-hover:scale-105 transition-transform duration-500"
+                  className="h-16 sm:h-28 w-auto object-contain transform group-hover:scale-105 transition-transform duration-500"
                 />
               </div>
             </div>
@@ -145,23 +145,23 @@ const App: React.FC = () => {
             <div className="flex p-1.5 bg-slate-100/80 backdrop-blur-sm rounded-[1.6rem] w-fit sm:ml-auto border border-slate-200 shadow-inner">
               <button
                 onClick={() => { setSearchMode('unidade'); handleClear(); }}
-                className={`flex items-center gap-2.5 px-8 py-4 rounded-[1.2rem] text-xs font-black uppercase tracking-widest transition-all duration-300 ${searchMode === 'unidade' ? 'bg-white text-[#2fabab] shadow-xl shadow-[#2fabab]/15 border border-slate-100' : 'text-slate-500 hover:text-slate-700'}`}
+                className={`flex items-center gap-2 px-4 py-2 sm:px-8 sm:py-4 rounded-[1.2rem] text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all duration-300 ${searchMode === 'unidade' ? 'bg-white text-[#2fabab] shadow-xl shadow-[#2fabab]/15 border border-slate-100' : 'text-slate-500 hover:text-slate-700'}`}
               >
-                <Building className="w-4.5 h-4.5" />
+                <Building className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
                 Unidades
               </button>
               <button
                 onClick={() => { setSearchMode('consultor'); handleClear(); }}
-                className={`flex items-center gap-2.5 px-8 py-4 rounded-[1.2rem] text-xs font-black uppercase tracking-widest transition-all duration-300 ${searchMode === 'consultor' ? 'bg-white text-[#c23c8e] shadow-xl shadow-[#c23c8e]/15 border border-slate-100' : 'text-slate-500 hover:text-slate-700'}`}
+                className={`flex items-center gap-2 px-4 py-2 sm:px-8 sm:py-4 rounded-[1.2rem] text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all duration-300 ${searchMode === 'consultor' ? 'bg-white text-[#c23c8e] shadow-xl shadow-[#c23c8e]/15 border border-slate-100' : 'text-slate-500 hover:text-slate-700'}`}
               >
-                <UserSearch className="w-4.5 h-4.5" />
+                <UserSearch className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
                 Consultores
               </button>
             </div>
           </div>
 
           <div className="relative group">
-            <h2 className="text-6xl sm:text-7xl xl:text-8xl font-black text-slate-900 tracking-tighter leading-[0.85] uppercase mb-4">
+            <h2 className="text-4xl sm:text-7xl xl:text-8xl font-black text-slate-900 tracking-tighter leading-[0.85] uppercase mb-4">
               Pesquisa <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#2fabab] via-[#c23c8e] to-[#f08228]">Consultoria de Campo</span>
             </h2>
@@ -174,9 +174,9 @@ const App: React.FC = () => {
           <form onSubmit={handleSearch} className="relative">
             <div className="absolute inset-y-0 left-0 pl-12 flex items-center pointer-events-none z-10">
               {loading ? (
-                <Loader2 className="h-8 w-8 text-[#2fabab] animate-spin" />
+                <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 text-[#2fabab] animate-spin" />
               ) : (
-                <Search className={`h-8 w-8 ${query ? (searchMode === 'unidade' ? 'text-[#2fabab]' : 'text-[#c23c8e]') : 'text-slate-200'} transition-colors duration-500`} />
+                <Search className={`h-6 w-6 sm:h-8 sm:w-8 ${query ? (searchMode === 'unidade' ? 'text-[#2fabab]' : 'text-[#c23c8e]') : 'text-slate-200'} transition-colors duration-500`} />
               )}
             </div>
             <input
@@ -185,18 +185,18 @@ const App: React.FC = () => {
               onChange={(e) => { setQuery(e.target.value); setShowSuggestions(true); }}
               onFocus={() => setShowSuggestions(true)}
               placeholder={searchMode === 'unidade' ? "Unidade ou Código..." : "Nome do Consultor..."}
-              className={`block w-full pl-28 pr-48 py-10 bg-slate-50 border-[3px] border-slate-50 rounded-[3.5rem] text-slate-900 focus:outline-none ${searchMode === 'unidade' ? 'focus:border-[#2fabab] focus:ring-8 focus:ring-[#2fabab]/10' : 'focus:border-[#c23c8e] focus:ring-8 focus:ring-[#c23c8e]/10'} focus:bg-white transition-all text-2xl sm:text-4xl font-black shadow-inner placeholder:text-slate-200`}
+              className={`block w-full pl-20 sm:pl-28 pr-32 sm:pr-48 py-6 sm:py-10 bg-slate-50 border-[3px] border-slate-50 rounded-[2.5rem] sm:rounded-[3.5rem] text-slate-900 focus:outline-none ${searchMode === 'unidade' ? 'focus:border-[#2fabab] focus:ring-4 sm:focus:ring-8 focus:ring-[#2fabab]/10' : 'focus:border-[#c23c8e] focus:ring-4 sm:focus:ring-8 focus:ring-[#c23c8e]/10'} focus:bg-white transition-all text-lg sm:text-4xl font-black shadow-inner placeholder:text-slate-200`}
             />
-            <div className="absolute inset-y-0 right-0 flex items-center pr-10 gap-5">
+            <div className="absolute inset-y-0 right-0 flex items-center pr-4 sm:pr-10 gap-2 sm:gap-5">
               {query && (
-                <button type="button" onClick={handleClear} className="p-4 text-slate-300 hover:text-slate-600 transition-colors">
-                  <X className="h-9 w-9" />
+                <button type="button" onClick={handleClear} className="p-2 sm:p-4 text-slate-300 hover:text-slate-600 transition-colors">
+                  <X className="h-6 w-6 sm:h-9 sm:w-9" />
                 </button>
               )}
               <button
                 type="submit"
                 disabled={loading}
-                className={`${searchMode === 'unidade' ? 'bg-[#2fabab] hover:bg-[#258a8a] shadow-2xl shadow-[#2fabab]/30' : 'bg-[#c23c8e] hover:bg-[#a63279] shadow-2xl shadow-[#c23c8e]/30'} text-white font-black py-6 px-14 rounded-[2.5rem] transition-all active:scale-95 disabled:opacity-50 text-base tracking-[0.2em] uppercase italic`}
+                className={`${searchMode === 'unidade' ? 'bg-[#2fabab] hover:bg-[#258a8a] shadow-2xl shadow-[#2fabab]/30' : 'bg-[#c23c8e] hover:bg-[#a63279] shadow-2xl shadow-[#c23c8e]/30'} text-white font-black py-3 px-6 sm:py-6 sm:px-14 rounded-[2rem] sm:rounded-[2.5rem] transition-all active:scale-95 disabled:opacity-50 text-sm sm:text-base tracking-[0.2em] uppercase italic`}
               >
                 Localizar
               </button>

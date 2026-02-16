@@ -68,15 +68,15 @@ export const UnitCard: React.FC<UnitCardProps> = ({ unit, searchTerm }) => {
   }
 
   return (
-    <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-200 p-12 hover:shadow-2xl hover:border-[#2fabab] transition-all duration-500 group relative overflow-hidden min-h-[420px] flex flex-col justify-between">
+    <div className="bg-white rounded-[2rem] sm:rounded-[2.5rem] shadow-sm border border-slate-200 p-6 sm:p-12 hover:shadow-2xl hover:border-[#2fabab] transition-all duration-500 group relative overflow-hidden min-h-[auto] sm:min-h-[420px] flex flex-col justify-between">
       {/* Background decoration using Teal Pantone */}
-      <div className="absolute top-0 right-0 w-32 h-32 bg-[#2fabab]/5 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-150 duration-700"></div>
+      <div className="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-[#2fabab]/5 rounded-full -mr-12 -mt-12 sm:-mr-16 sm:-mt-16 transition-transform group-hover:scale-150 duration-700"></div>
 
       <div className="relative z-10">
         <div className="flex justify-between items-start mb-6">
-          <div className="flex items-start gap-5">
+          <div className="flex items-start gap-4 sm:gap-5">
             {avatarUrl && (
-              <div className="relative shrink-0 mt-2 overflow-hidden rounded-full w-32 h-32 border-[6px] border-white shadow-2xl bg-slate-50">
+              <div className="relative shrink-0 mt-2 overflow-hidden rounded-full w-20 h-20 sm:w-32 sm:h-32 border-4 sm:border-[6px] border-white shadow-2xl bg-slate-50">
                 {/* Glow with Pantone Colors */}
                 <div className={`absolute -inset-2 bg-gradient-to-tr ${isGuilherme || isJailson || isAnderson ? 'from-[#2fabab] to-[#c23c8e]' : 'from-[#c23c8e] to-[#f08228]'} rounded-full animate-pulse opacity-20 blur-sm`}></div>
                 <img
@@ -87,57 +87,57 @@ export const UnitCard: React.FC<UnitCardProps> = ({ unit, searchTerm }) => {
                 />
               </div>
             )}
-            <div className="flex flex-col gap-2 pt-2">
-              <span className="text-xs font-black text-[#2fabab] bg-[#2fabab]/10 px-4 py-1.5 rounded-full uppercase tracking-widest self-start shadow-sm border border-[#2fabab]/20">
+            <div className="flex flex-col gap-2 pt-1 sm:pt-2">
+              <span className="text-[10px] sm:text-xs font-black text-[#2fabab] bg-[#2fabab]/10 px-3 py-1 sm:px-4 sm:py-1.5 rounded-full uppercase tracking-widest self-start shadow-sm border border-[#2fabab]/20">
                 Unidade Oficial
               </span>
-              <span className="text-sm font-bold text-slate-400">ID {unit.id}</span>
+              <span className="text-xs sm:text-sm font-bold text-slate-400">ID {unit.id}</span>
             </div>
           </div>
         </div>
 
-        <h3 className="text-5xl sm:text-6xl font-black text-[#2fabab] mb-8 leading-none transition-colors tracking-tighter">
+        <h3 className="text-3xl sm:text-5xl lg:text-6xl font-black text-[#2fabab] mb-6 sm:mb-8 leading-none transition-colors tracking-tighter break-words">
           <HighlightedText
             text={unit.unidade}
             highlight={searchTerm}
           />
         </h3>
 
-        <div className="flex items-center gap-2 mb-8">
-          <div className="flex items-center gap-3 px-6 py-2.5 bg-slate-50 text-slate-600 rounded-full text-base font-bold border border-slate-100 shadow-sm">
-            <MapPin className="w-5 h-5 text-[#2fabab]" />
+        <div className="flex items-center gap-2 mb-6 sm:mb-8">
+          <div className="flex items-center gap-2 sm:gap-3 px-4 py-2 sm:px-6 sm:py-2.5 bg-slate-50 text-slate-600 rounded-full text-sm sm:text-base font-bold border border-slate-100 shadow-sm">
+            <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-[#2fabab]" />
             {unit.cidade}
           </div>
         </div>
       </div>
 
-      <div className="space-y-5 relative z-10">
-        <div className="grid grid-cols-2 gap-6 pt-6 border-t border-slate-100">
+      <div className="space-y-4 sm:space-y-5 relative z-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 pt-6 border-t border-slate-100">
           <div>
-            <p className="text-sm text-slate-400 font-bold uppercase tracking-[0.15em] mb-3">Franquia</p>
-            <div className="flex items-center gap-3">
-              <ShieldCheck className="w-6 h-6 text-[#f08228]" />
-              <p className="text-2xl text-slate-700 font-bold">{unit.franquia}</p>
+            <p className="text-xs sm:text-sm text-slate-400 font-bold uppercase tracking-[0.15em] mb-2 sm:mb-3">Franquia</p>
+            <div className="flex items-center gap-2 sm:gap-3">
+              <ShieldCheck className="w-5 h-5 sm:w-6 sm:h-6 text-[#f08228]" />
+              <p className="text-lg sm:text-2xl text-slate-700 font-bold">{unit.franquia}</p>
             </div>
           </div>
           <div>
-            <p className="text-sm text-slate-400 font-bold uppercase tracking-[0.15em] mb-3">Franqueado</p>
-            <div className="flex items-center gap-3">
-              <UserCheck className="w-6 h-6 text-[#c23c8e]" />
-              <p className="text-2xl text-slate-700 font-bold truncate max-w-[240px]" title={unit.franqueado}>
+            <p className="text-xs sm:text-sm text-slate-400 font-bold uppercase tracking-[0.15em] mb-2 sm:mb-3">Franqueado</p>
+            <div className="flex items-center gap-2 sm:gap-3">
+              <UserCheck className="w-5 h-5 sm:w-6 sm:h-6 text-[#c23c8e]" />
+              <p className="text-lg sm:text-2xl text-slate-700 font-bold truncate max-w-[180px] sm:max-w-[240px]" title={unit.franqueado}>
                 {capitalizeName(unit.franqueado)}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 transition-all group-hover:bg-[#2fabab]/5 group-hover:border-[#2fabab]/20 group-hover:shadow-inner">
-          <p className="text-sm text-slate-400 font-bold uppercase tracking-[0.15em] mb-3">Consultor de Campo Responsável</p>
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-[#2fabab]/10 flex items-center justify-center">
-              <User className="w-6 h-6 text-[#2fabab]" />
+        <div className="bg-slate-50 p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-100 transition-all group-hover:bg-[#2fabab]/5 group-hover:border-[#2fabab]/20 group-hover:shadow-inner">
+          <p className="text-xs sm:text-sm text-slate-400 font-bold uppercase tracking-[0.15em] mb-2 sm:mb-3">Consultor de Campo Responsável</p>
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#2fabab]/10 flex items-center justify-center">
+              <User className="w-5 h-5 sm:w-6 sm:h-6 text-[#2fabab]" />
             </div>
-            <p className="text-3xl text-slate-800 font-black tracking-tight group-hover:text-[#2fabab]">{capitalizeName(unit.consultorCampo)}</p>
+            <p className="text-xl sm:text-3xl text-slate-800 font-black tracking-tight group-hover:text-[#2fabab]">{capitalizeName(unit.consultorCampo)}</p>
           </div>
         </div>
       </div>
