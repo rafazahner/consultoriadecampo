@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pesquisa de Unidades | Network Gym</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --brand-teal: #2fabab;
+      --brand-orange: #f08228;
+      --brand-purple: #c23c8e;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #fcfdfe;
+      color: #1e293b;
+    }
+
+    /* Seleção Customizada */
+    ::selection {
+      background-color: var(--brand-teal);
+      color: white;
+    }
+
+    /* Scrollbar Customizada */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--brand-teal);
+      border-radius: 10px;
+      border: 2px solid #f1f5f9;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #258a8a;
+    }
+
+    /* Classes utilitárias para as cores da paleta */
+    .text-brand-teal {
+      color: var(--brand-teal);
+    }
+
+    .bg-brand-teal {
+      background-color: var(--brand-teal);
+    }
+
+    .border-brand-teal {
+      border-color: var(--brand-teal);
+    }
+
+    .text-brand-orange {
+      color: var(--brand-orange);
+    }
+
+    .bg-brand-orange {
+      background-color: var(--brand-orange);
+    }
+
+    .text-brand-purple {
+      color: var(--brand-purple);
+    }
+
+    .bg-brand-purple {
+      background-color: var(--brand-purple);
+    }
+
+    @keyframes float {
+
+      0%,
+      100% {
+        transform: translateY(0) rotate(0deg);
+      }
+
+      50% {
+        transform: translateY(-20px) rotate(1deg);
+      }
+    }
+
+    .animate-float {
+      animation: float 6s ease-in-out infinite;
+    }
+  </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "react": "https://esm.sh/react@^19.2.4",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "lucide-react": "https://esm.sh/lucide-react@^0.564.0"
+  }
+}
+</script>
+  <link rel="stylesheet" href="/index.css">
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+
+</html>
