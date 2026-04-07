@@ -12,6 +12,8 @@ const LOGO_URL = "https://i.postimg.cc/HLySLdXq/Captura_de_tela_2026_01_27_16394
 const ID_CAMPO_CONSULTOR = 236742;
 const ID_CAMPO_FRANQUIA = 236743;
 const ID_CAMPO_FRANQUEADO = 236744;
+const PAGE_SIZE = 100;
+const MAX_PAGES = 50;
 
 const App: React.FC = () => {
   const [unidades, setUnidades] = useState<Unit[]>([]);
@@ -28,12 +30,25 @@ const App: React.FC = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${API_BASE_URL}&$filter=personType eq 2&$top=100`);
-        if (!response.ok) throw new Error('Falha ao conectar com o Movidesk');
+        const allPersons: MovideskPerson[] = [];
 
-        const data: MovideskPerson[] = await response.json();
+        for (let page = 0; page < MAX_PAGES; page += 1) {
+          const skip = page * PAGE_SIZE;
+          const response = await fetch(
+            `${API_BASE_URL}&$filter=personType eq 2&$top=${PAGE_SIZE}&$skip=${skip}`
+          );
 
-        const mappedUnits: Unit[] = data.map(person => {
+          if (!response.ok) throw new Error('Falha ao conectar com o Movidesk');
+
+          const pageData: MovideskPerson[] = await response.json();
+          allPersons.push(...pageData);
+
+          if (pageData.length < PAGE_SIZE) {
+            break;
+          }
+        }
+
+        const mappedUnits: Unit[] = allPersons.map(person => {
           const getCustomValue = (id: number) => {
             return person.customFieldValues?.find(cf => cf.customFieldId === id)?.value || "N/A";
           };
