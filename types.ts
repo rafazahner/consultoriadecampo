@@ -11,4 +11,8 @@ export interface Unit {
   studios: string;
   wellhub: string;
   totalpass: string;
+  lifetime: string;
+  ticketMedio: string;
+  ltv: string;
+  gold: string;
 }

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Unit } from '../types';
 import { HighlightedText } from './HighlightedText';
-import { MapPin, User, UserCheck, ShieldCheck, CalendarDays, Waves, Clapperboard, Activity, Users } from 'lucide-react';
+import { MapPin, User, UserCheck, ShieldCheck, CalendarDays, Waves, Clapperboard, Activity, Users, Clock, Tag, TrendingUp, Star } from 'lucide-react';
 import { normalizeText, capitalizeName } from '../utils/searchUtils';
 
 function excelDateToString(raw: string): string {
@@ -176,6 +176,37 @@ export const UnitCard: React.FC<UnitCardProps> = ({ unit, searchTerm }) => {
             <div>
               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Totalpass</p>
               <p className="text-sm text-slate-700 font-bold">{unit.totalpass}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 pt-3 border-t border-slate-100">
+          <div className="flex items-center gap-2">
+            <Clock className="w-4 h-4 text-[#2fabab] shrink-0" />
+            <div>
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Life Time</p>
+              <p className="text-sm text-slate-700 font-bold">{unit.lifetime}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Tag className="w-4 h-4 text-[#c23c8e] shrink-0" />
+            <div>
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Ticket Médio</p>
+              <p className="text-sm text-slate-700 font-bold">{unit.ticketMedio}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <TrendingUp className="w-4 h-4 text-[#f08228] shrink-0" />
+            <div>
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">LTV</p>
+              <p className="text-sm text-slate-700 font-bold">{unit.ltv}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Star className="w-4 h-4 text-[#2fabab] shrink-0" />
+            <div>
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Gold</p>
+              <p className="text-sm text-slate-700 font-bold">{unit.gold}</p>
             </div>
           </div>
         </div>

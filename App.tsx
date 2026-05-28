@@ -46,6 +46,10 @@ const App: React.FC = () => {
             studios: String(row[17] ?? 'N/A').trim(),
             wellhub: String(row[18] ?? 'N/A').trim(),
             totalpass: String(row[19] ?? 'N/A').trim(),
+            lifetime: String(row[12] ?? 'N/A').trim(),
+            ticketMedio: String(row[13] ?? 'N/A').trim(),
+            ltv: String(row[14] ?? 'N/A').trim(),
+            gold: String(row[15] ?? 'N/A').trim(),
           }));
 
         const uniqueUnits = mappedUnits.filter((unit, index, self) =>
