@@ -31,7 +31,7 @@ const App: React.FC = () => {
         const data = await response.json();
         const rows: unknown[][] = data.values ?? [];
 
-        // colunas: 0=UNIDADE, 2=INAUG., 3=CIDADE, 6=FRANQUIA, 7=FRANQUEADO, 16=PISCINA, 17=STUDIOS, 18=WELLHUB, 19=TOTALPASS, 20=CONSULTORES
+        // colunas: 0=UNIDADE, 2=INAUG., 3=CIDADE, 6=FRANQUIA, 7=FRANQUEADO, 16=PISCINA, 17=STUDIOS, 18=WELLHUB, 19=TOTALPASS, 24=CONSULTORES
         const mappedUnits: Unit[] = rows.slice(1)
           .filter(row => row[0])
           .map((row, index) => ({
@@ -40,7 +40,7 @@ const App: React.FC = () => {
             cidade: String(row[3] ?? 'Não informada').trim(),
             franquia: String(row[6] ?? 'N/A').trim(),
             franqueado: String(row[7] ?? 'N/A').trim(),
-            consultorCampo: String(row[20] ?? 'N/A').trim(),
+            consultorCampo: String(row[24] ?? 'N/A').trim(),
             inauguracao: String(row[2] ?? '').trim(),
             piscina: String(row[16] ?? 'N/A').trim(),
             studios: String(row[17] ?? 'N/A').trim(),
@@ -111,6 +111,16 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white lg:flex">
+      {/* LOADING POPUP */}
+      {loading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-sm">
+          <div className="flex flex-col items-center gap-6 bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200 px-16 py-12 border border-slate-100">
+            <Loader2 className="w-14 h-14 text-[#2fabab] animate-spin" />
+            <p className="text-slate-700 font-black text-xl uppercase tracking-[0.25em]">Carregando Informações...</p>
+          </div>
+        </div>
+      )}
+
       {/* SIDEBAR: Pantone Themed Branding */}
       <aside className="hidden lg:flex lg:w-[480px] xl:w-[580px] bg-gradient-to-br from-[#2fabab]/5 via-[#c23c8e]/5 to-[#f08228]/5 border-r border-slate-100 relative lg:h-screen lg:sticky lg:top-0 flex-col items-center justify-center p-8 overflow-hidden">
         {/* Glow Effects using exact Pantone palette */}
