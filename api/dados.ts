@@ -22,7 +22,7 @@ export default async function handler(_req: VercelRequest, res: VercelResponse) 
     }
 
     const graphRes = await fetch(
-      "https://graph.microsoft.com/v1.0/users/guilherme.lacerda@ultraacademia.com.br/drive/items/012OBHEM7GYBQG4SGM3BDIQT6OAFQ3KNH4/workbook/worksheets('DADOS')/usedRange",
+      "https://graph.microsoft.com/v1.0/users/guilherme.lacerda@ultraacademia.com.br/drive/items/C190CA03-6BCF-4E51-B246-824877B19FF0/workbook/worksheets('DADOS')/usedRange",
       { headers: { Authorization: `Bearer ${tokenData.access_token}` } }
     );
 
