@@ -1,12 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-const PASTA_IDS = [
-  { name: 'OPERAÇÕES',       id: '012OBHEM5IBO5V6QUT2RHZJV7XBXNBSEUF' },
-  { name: 'PRAXIS BUSINESS', id: '012OBHEM3YMUGT6LKJHRF2F2MW4ULZR6HW' },
-  { name: 'TECNOLOGIA',      id: '012OBHEM2UMEUXC25TZ5AY45MI7GXIDLJJ' },
-  { name: 'RELATÓRIOS',      id: '012OBHEM2W35BKAOAPPFDIRORAOYGSYKHQ' },
-];
-
 export default async function handler(_req: VercelRequest, res: VercelResponse) {
   try {
     const tokenRes = await fetch(
@@ -28,18 +21,12 @@ export default async function handler(_req: VercelRequest, res: VercelResponse) 
       return res.status(500).json({ error: tokenData.error_description ?? 'Token não obtido' });
     }
 
-    const results: Record<string, unknown> = {};
-
-    for (const pasta of PASTA_IDS) {
-      const r = await fetch(
-        `https://graph.microsoft.com/v1.0/users/guilherme.lacerda@ultraacademia.com.br/drive/items/${pasta.id}/children?$select=id,name,lastModifiedDateTime&$top=50`,
-        { headers: { Authorization: `Bearer ${tokenData.access_token}` } }
-      );
-      const data = await r.json() as { value?: { id: string; name: string; lastModifiedDateTime: string }[] };
-      results[pasta.name] = (data.value ?? []).map(f => ({ id: f.id, name: f.name, modified: f.lastModifiedDateTime }));
-    }
-
-    return res.status(200).json(results);
+    const r = await fetch(
+      `https://graph.microsoft.com/v1.0/users/guilherme.lacerda@ultraacademia.com.br/drive/items/012OBHEM2GHE5BFZN43BB2BMU5XG4FGZT2/children?$select=id,name,lastModifiedDateTime&$top=50`,
+      { headers: { Authorization: `Bearer ${tokenData.access_token}` } }
+    );
+    const data = await r.json();
+    return res.status(200).json(data);
   } catch (err) {
     return res.status(500).json({ error: String(err) });
   }
