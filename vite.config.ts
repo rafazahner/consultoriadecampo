@@ -28,7 +28,7 @@ function graphApiPlugin(env: Record<string, string>): Plugin {
           }
 
           const graphRes = await fetch(
-            "https://graph.microsoft.com/v1.0/sites/ultrafitacademia.sharepoint.com:/sites/ConsultoriadeCampo:/drive/items/AA9FA19B-A653-432C-8926-1BC4A465B21F/workbook/worksheets('DADOS')/usedRange",
+            "https://graph.microsoft.com/v1.0/drives/b!S7AfAMvfOUSsYZCBzRit7g66NAyfUONLmsQyYgOBvx-RGSBAaSQbR4lvNOFe4Vui/items/AA9FA19B-A653-432C-8926-1BC4A465B21F/workbook/worksheets('DADOS')/usedRange",
             { headers: { Authorization: `Bearer ${tokenData.access_token}` } }
           );
           const graphData = await graphRes.json();
