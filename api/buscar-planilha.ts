@@ -21,12 +21,26 @@ export default async function handler(_req: VercelRequest, res: VercelResponse) 
       return res.status(500).json({ error: tokenData.error_description ?? 'Token não obtido' });
     }
 
-    const r = await fetch(
-      `https://graph.microsoft.com/v1.0/users/guilherme.lacerda@ultraacademia.com.br/drive/items/012OBHEM2GHE5BFZN43BB2BMU5XG4FGZT2/children?$select=id,name,lastModifiedDateTime&$top=50`,
+    const results: Record<string, unknown> = {};
+
+    // Tenta resolver o site do SharePoint
+    const siteRes = await fetch(
+      'https://graph.microsoft.com/v1.0/sites/ultrafitacademia.sharepoint.com:/sites/ConsultoriadeCampo',
       { headers: { Authorization: `Bearer ${tokenData.access_token}` } }
     );
-    const data = await r.json();
-    return res.status(200).json(data);
+    const siteData = await siteRes.json() as { id?: string; error?: unknown };
+    results['site'] = siteData;
+
+    // Se achou o site, lista os drives
+    if (siteData.id) {
+      const drivesRes = await fetch(
+        `https://graph.microsoft.com/v1.0/sites/${siteData.id}/drives`,
+        { headers: { Authorization: `Bearer ${tokenData.access_token}` } }
+      );
+      results['drives'] = await drivesRes.json();
+    }
+
+    return res.status(200).json(results);
   } catch (err) {
     return res.status(500).json({ error: String(err) });
   }
