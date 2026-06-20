@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Search, X, Building, Info, Loader2, AlertCircle, ChevronRight, UserSearch, RefreshCw, GraduationCap, BookOpen, CheckCircle2, Clock, PlayCircle, TrendingUp, MapPin, User } from 'lucide-react';
+import { Search, X, Building, Info, Loader2, AlertCircle, ChevronRight, UserSearch, RefreshCw, GraduationCap, BookOpen, CheckCircle2, Clock, PlayCircle, TrendingUp, MapPin, User, FileDown } from 'lucide-react';
 import { Unit } from './types';
 import { UnitCard } from './components/UnitCard';
 import { containsSearchTerm } from './utils/searchUtils';
@@ -22,12 +22,26 @@ interface TreinamentoRetorno {
   'Última Curso Concluído': string;
 }
 
+interface ColaboradorUnidade {
+  'Aluno': string;
+  'Unidade': string;
+  'Perfil': string;
+  'Progresso': number | string;
+  'Total de cursos': number;
+  'A fazer': number | string;
+  'Em andamento': number | string;
+  'Concluídos': number | string;
+  'Média das notas': number | string;
+  'Último conteúdo assistido': string;
+  'Último curso concluído': string;
+}
+
 
 const App: React.FC = () => {
   const [unidades, setUnidades] = useState<Unit[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchMode, setSearchMode] = useState<'unidade' | 'consultor' | 'treinamentos'>('unidade');
+  const [searchMode, setSearchMode] = useState<'unidade' | 'consultor' | 'treinamentos' | 'treinamentos-unidade'>('unidade');
 
   const [query, setQuery] = useState('');
   const [submittedQuery, setSubmittedQuery] = useState('');
@@ -37,11 +51,19 @@ const App: React.FC = () => {
   const [treinamentoQuery, setTreinamentoQuery] = useState('');
   const [treinamentoResult, setTreinamentoResult] = useState<TreinamentoRetorno | null>(null);
   const [treinamentoSearched, setTreinamentoSearched] = useState(false);
+  const [treinamentoMensagem, setTreinamentoMensagem] = useState<string | null>(null);
   const [treinamentoSuggestions, setTreinamentoSuggestions] = useState<string[]>([]);
   const [treinamentoLoadingSuggestions, setTreinamentoLoadingSuggestions] = useState(false);
   const [showTreinamentoSuggestions, setShowTreinamentoSuggestions] = useState(false);
   const treinamentoSuggestionsRef = useRef<HTMLDivElement>(null);
   const treinamentoDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const [unidadesList, setUnidadesList] = useState<string[]>([]);
+  const [unidadesLoading, setUnidadesLoading] = useState(false);
+  const [unidadeSelecionada, setUnidadeSelecionada] = useState<string | null>(null);
+  const [showUnidadeDropdown, setShowUnidadeDropdown] = useState(false);
+  const [colaboradoresUnidade, setColaboradoresUnidade] = useState<ColaboradorUnidade[]>([]);
+  const [colaboradoresLoading, setColaboradoresLoading] = useState(false);
 
   const fetchData = async () => {
     try {
@@ -129,6 +151,29 @@ const App: React.FC = () => {
     setSubmittedQuery('');
   };
 
+  const fetchColaboradoresUnidade = async (unidade: string) => {
+    setColaboradoresUnidade([]);
+    setColaboradoresLoading(true);
+    try {
+      const url = new URL('https://script.google.com/macros/s/AKfycby7vMu1WocaeHyruf2u9E-0rqAZ11Ye1OIOvBXvNBpScNOyuL5MQuv8j_WlqZSm1PYi/exec');
+      url.searchParams.set('endpoint', 'colaboradores');
+      url.searchParams.set('unidade', unidade);
+      const res = await fetch(url.toString());
+      const data = await res.json();
+      const lista = Array.isArray(data.colaboradores) ? data.colaboradores : [];
+      lista.sort((a, b) => {
+        const pa = typeof a['Progresso'] === 'number' ? a['Progresso'] : -1;
+        const pb = typeof b['Progresso'] === 'number' ? b['Progresso'] : -1;
+        return pb - pa;
+      });
+      setColaboradoresUnidade(lista);
+    } catch {
+      setColaboradoresUnidade([]);
+    } finally {
+      setColaboradoresLoading(false);
+    }
+  };
+
   const fetchTreinamentoSuggestions = (value: string) => {
     if (treinamentoDebounceRef.current) clearTimeout(treinamentoDebounceRef.current);
     if (value.trim().length < 2) { setTreinamentoSuggestions([]); setShowTreinamentoSuggestions(false); return; }
@@ -167,6 +212,7 @@ const App: React.FC = () => {
 
   const handleTreinamentoSearchByName = async (nome: string) => {
     setTreinamentoResult(null);
+    setTreinamentoMensagem(null);
     setTreinamentoSearched(false);
     setLoading(true);
     try {
@@ -175,13 +221,15 @@ const App: React.FC = () => {
       const res = await fetch(url.toString());
       const json = await res.json();
       const data = json?.data ?? json;
-      if (data.error_code === 0 && data.retorno?.length > 0) {
+      if (data.error_code === 0 && Array.isArray(data.retorno) && data.retorno.length > 0) {
         setTreinamentoResult(data.retorno[0]);
       } else {
         setTreinamentoResult(null);
+        setTreinamentoMensagem(data.message_return ?? null);
       }
     } catch {
       setTreinamentoResult(null);
+      setTreinamentoMensagem(null);
     } finally {
       setTreinamentoSearched(true);
       setLoading(false);
@@ -199,8 +247,23 @@ const App: React.FC = () => {
     setTreinamentoQuery('');
     setTreinamentoResult(null);
     setTreinamentoSearched(false);
+    setTreinamentoMensagem(null);
     setTreinamentoSuggestions([]);
     setShowTreinamentoSuggestions(false);
+  };
+
+  const fetchUnidades = async () => {
+    if (unidadesList.length > 0) return;
+    setUnidadesLoading(true);
+    try {
+      const res = await fetch('https://script.google.com/macros/s/AKfycby7vMu1WocaeHyruf2u9E-0rqAZ11Ye1OIOvBXvNBpScNOyuL5MQuv8j_WlqZSm1PYi/exec?endpoint=unidades');
+      const data = await res.json();
+      setUnidadesList(Array.isArray(data.unidades) ? data.unidades : []);
+    } catch {
+      setUnidadesList([]);
+    } finally {
+      setUnidadesLoading(false);
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -282,7 +345,14 @@ const App: React.FC = () => {
                 className={`flex items-center gap-2 px-4 py-2 sm:px-8 sm:py-4 rounded-[1.2rem] text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all duration-300 ${searchMode === 'treinamentos' ? 'bg-white text-[#f08228] shadow-xl shadow-[#f08228]/15 border border-slate-100' : 'text-slate-500 hover:text-slate-700'}`}
               >
                 <GraduationCap className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
-                Consulta de Treinamentos
+                Treinamentos Colaborador
+              </button>
+              <button
+                onClick={() => { setSearchMode('treinamentos-unidade'); handleClear(); fetchUnidades(); }}
+                className={`flex items-center gap-2 px-4 py-2 sm:px-8 sm:py-4 rounded-[1.2rem] text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all duration-300 ${searchMode === 'treinamentos-unidade' ? 'bg-white text-[#2fabab] shadow-xl shadow-[#2fabab]/15 border border-slate-100' : 'text-slate-500 hover:text-slate-700'}`}
+              >
+                <Building className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
+                Treinamentos Unidades
               </button>
             </div>
             </div>
@@ -291,7 +361,9 @@ const App: React.FC = () => {
           <div className="relative group">
             <h2 className="text-4xl sm:text-7xl xl:text-8xl font-black text-slate-900 tracking-tighter leading-[0.85] uppercase mb-4">
               {searchMode === 'treinamentos' ? (
-                <>Consulta de <br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-[#f08228] via-[#c23c8e] to-[#f08228]">Treinamentos</span></>
+                <>Treinamentos <br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-[#f08228] via-[#c23c8e] to-[#f08228]">Colaborador</span></>
+              ) : searchMode === 'treinamentos-unidade' ? (
+                <>Treinamentos <br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-[#2fabab] via-[#c23c8e] to-[#2fabab]">Unidades</span></>
               ) : (
                 <>Pesquisa <br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-[#2fabab] via-[#c23c8e] to-[#f08228]">Consultoria de Campo</span></>
               )}
@@ -301,7 +373,193 @@ const App: React.FC = () => {
         </header>
 
         {/* SEARCH BOX — modo treinamentos */}
-        {searchMode === 'treinamentos' ? (
+        {searchMode === 'treinamentos-unidade' ? (
+          <>
+            {/* POPUP carregando unidades */}
+            {unidadesLoading && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-sm">
+                <div className="flex flex-col items-center gap-6 bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200 px-16 py-12 border border-slate-100">
+                  <Loader2 className="w-14 h-14 text-[#2fabab] animate-spin" />
+                  <p className="text-slate-700 font-black text-xl uppercase tracking-[0.25em]">Carregando Unidades...</p>
+                </div>
+              </div>
+            )}
+
+            <div className="mb-16">
+              <div className="relative">
+                {/* Botão select estilizado */}
+                <button
+                  type="button"
+                  onClick={() => setShowUnidadeDropdown(v => !v)}
+                  className={`flex items-center w-full pl-20 sm:pl-28 pr-16 py-6 sm:py-10 bg-slate-50 border-[3px] rounded-[2.5rem] sm:rounded-[3.5rem] text-left transition-all shadow-inner ${showUnidadeDropdown ? 'border-[#2fabab] ring-4 sm:ring-8 ring-[#2fabab]/10 bg-white' : 'border-slate-50'}`}
+                >
+                  <Building className={`absolute left-12 w-6 h-6 sm:w-8 sm:h-8 ${unidadeSelecionada ? 'text-[#2fabab]' : 'text-slate-200'} transition-colors duration-500`} />
+                  <span className={`text-lg sm:text-3xl font-black tracking-tighter truncate ${unidadeSelecionada ? 'text-slate-900' : 'text-slate-200'}`}>
+                    {unidadeSelecionada ?? 'Selecione a unidade...'}
+                  </span>
+                  <ChevronRight className={`absolute right-10 w-6 h-6 text-slate-300 transition-transform duration-300 ${showUnidadeDropdown ? 'rotate-90' : ''}`} />
+                </button>
+
+                {unidadeSelecionada && (
+                  <button
+                    type="button"
+                    onClick={() => { setUnidadeSelecionada(null); setShowUnidadeDropdown(false); setColaboradoresUnidade([]); }}
+                    className="absolute inset-y-0 right-14 flex items-center text-slate-300 hover:text-slate-600 transition-colors pr-4"
+                  >
+                    <X className="h-5 w-5 sm:h-7 sm:w-7" />
+                  </button>
+                )}
+
+                {/* Dropdown lista */}
+                {showUnidadeDropdown && (
+                  <div className="absolute z-30 w-full mt-4 bg-white/98 backdrop-blur-2xl rounded-[2.5rem] shadow-[0_40px_80px_-15px_rgba(0,0,0,0.18)] border border-slate-100 overflow-hidden max-h-[400px] overflow-y-auto">
+                    <div className="p-6 border-b border-slate-50 bg-slate-50/60 sticky top-0">
+                      <span className="text-[10px] font-black text-[#2fabab] uppercase tracking-[0.5em]">{unidadesList.length} Unidades Disponíveis</span>
+                    </div>
+                    {unidadesList.map((u, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => { setUnidadeSelecionada(u); setShowUnidadeDropdown(false); fetchColaboradoresUnidade(u); }}
+                        className={`w-full text-left px-10 py-4 flex items-center justify-between group transition-colors border-b border-slate-50/60 last:border-0 ${unidadeSelecionada === u ? 'bg-[#2fabab]/5' : 'hover:bg-slate-50'}`}
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${unidadeSelecionada === u ? 'bg-[#2fabab] text-white' : 'bg-[#2fabab]/10 text-[#2fabab]'}`}>
+                            <Building className="w-3.5 h-3.5" />
+                          </div>
+                          <span className={`font-bold text-sm sm:text-base tracking-tight ${unidadeSelecionada === u ? 'text-[#2fabab]' : 'text-slate-700'}`}>{u}</span>
+                        </div>
+                        {unidadeSelecionada === u && <CheckCircle2 className="w-5 h-5 text-[#2fabab] flex-shrink-0" />}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <section className="flex-grow pb-24">
+              {/* Popup carregando colaboradores */}
+              {colaboradoresLoading && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-sm">
+                  <div className="flex flex-col items-center gap-6 bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200 px-16 py-12 border border-slate-100">
+                    <Loader2 className="w-14 h-14 text-[#2fabab] animate-spin" />
+                    <p className="text-slate-700 font-black text-xl uppercase tracking-[0.25em]">Buscando Treinamentos...</p>
+                  </div>
+                </div>
+              )}
+
+              {unidadeSelecionada && colaboradoresUnidade.length > 0 ? (
+                <div className="animate-in fade-in slide-in-from-bottom-10 duration-700" id="print-area">
+                  {/* Header da unidade */}
+                  <div style={{breakInside: 'avoid', pageBreakInside: 'avoid'}} className="flex items-center gap-6 p-8 sm:p-10 bg-white rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-100 mb-8">
+                    <div className="w-16 h-16 rounded-[1.5rem] bg-[#2fabab]/10 flex items-center justify-center flex-shrink-0">
+                      <Building className="w-8 h-8 text-[#2fabab]" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] mb-1">Unidade</p>
+                      <p className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tighter">{unidadeSelecionada}</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-[10px] font-black text-[#2fabab] bg-[#2fabab]/10 px-4 py-2 rounded-full uppercase tracking-widest">{colaboradoresUnidade.filter(c => c['Perfil'] !== 'Administrativo').length} colaboradores</span>
+                      <button
+                        onClick={() => window.print()}
+                        className="no-print flex items-center gap-2 px-5 py-2.5 bg-[#2fabab] hover:bg-[#258a8a] text-white font-black text-xs uppercase tracking-widest rounded-2xl transition-all active:scale-95 shadow-lg shadow-[#2fabab]/30"
+                      >
+                        <FileDown className="w-4 h-4" />
+                        Exportar PDF
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Cards dos colaboradores */}
+                  <div className="flex flex-col gap-4">
+                    {colaboradoresUnidade.filter(c => c['Perfil'] !== 'Administrativo').map((c, i) => {
+                      const progresso = typeof c['Progresso'] === 'number' ? c['Progresso'] : null;
+                      const progressoValido = progresso !== null && !isNaN(progresso);
+                      return (
+                        <div key={i} style={{breakInside: 'avoid', pageBreakInside: 'avoid'}} className={`bg-white rounded-[2rem] shadow-lg overflow-hidden ${progresso !== 100 ? 'border-2 border-red-400 animate-pulse shadow-red-100' : 'border border-slate-100 shadow-slate-50'}`}>
+                          <div className="h-1.5 bg-gradient-to-r from-[#2fabab] via-[#c23c8e] to-[#f08228]" style={{ width: `${progressoValido ? Math.max(progresso, 2) : 100}%`, background: progressoValido && progresso === 100 ? 'linear-gradient(to right, #2fabab, #2fabab)' : undefined }} />
+                          <div className="p-6 sm:p-8">
+                            {/* Nome e perfil */}
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
+                              <div className="w-12 h-12 rounded-[1rem] bg-[#2fabab]/10 flex items-center justify-center flex-shrink-0">
+                                <User className="w-6 h-6 text-[#2fabab]" />
+                              </div>
+                              <div className="flex-1">
+                                <p className="text-lg sm:text-xl font-black text-slate-900 tracking-tighter">{c['Aluno']}</p>
+                                <span className="text-[10px] font-black uppercase tracking-widest text-[#2fabab] bg-[#2fabab]/10 px-2 py-0.5 rounded-full">{c['Perfil']}</span>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-2xl font-black text-[#2fabab]">{progressoValido ? `${progresso}%` : '—'}</p>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Progresso</p>
+                              </div>
+                            </div>
+
+                            {/* Barra de progresso */}
+                            {progressoValido && (
+                              <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden mb-6">
+                                <div className="h-full bg-gradient-to-r from-[#2fabab] to-[#c23c8e] rounded-full" style={{ width: `${Math.max(progresso, 2)}%` }} />
+                              </div>
+                            )}
+
+                            {/* Métricas */}
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+                              <div className="bg-slate-50 rounded-[1rem] p-3 text-center">
+                                <p className="text-xl font-black text-slate-900">{c['Total de cursos']}</p>
+                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Total</p>
+                              </div>
+                              <div className="bg-green-50 rounded-[1rem] p-3 text-center">
+                                <p className="text-xl font-black text-green-600">{c['Concluídos'] === '-----' ? '0' : c['Concluídos']}</p>
+                                <p className="text-[9px] font-black text-green-400 uppercase tracking-widest">Concluídos</p>
+                              </div>
+                              <div className="bg-blue-50 rounded-[1rem] p-3 text-center">
+                                <p className="text-xl font-black text-blue-600">{c['Em andamento'] === '-----' ? '0' : c['Em andamento']}</p>
+                                <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest">Em Andamento</p>
+                              </div>
+                              <div className="bg-orange-50 rounded-[1rem] p-3 text-center">
+                                <p className="text-xl font-black text-[#f08228]">{c['A fazer'] === '-----' ? '0' : c['A fazer']}</p>
+                                <p className="text-[9px] font-black text-orange-300 uppercase tracking-widest">A Fazer</p>
+                              </div>
+                            </div>
+
+                            {/* Último curso concluído */}
+                            {c['Último curso concluído'] && c['Último curso concluído'] !== '-----' && (
+                              <div className="flex items-center gap-3 bg-[#2fabab]/5 border border-[#2fabab]/15 rounded-[1rem] px-4 py-3">
+                                <TrendingUp className="w-4 h-4 text-[#2fabab] flex-shrink-0" />
+                                <div>
+                                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em]">Último Curso Concluído</p>
+                                  <p className="text-slate-700 font-bold text-sm mt-0.5">{c['Último curso concluído']}</p>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : unidadeSelecionada && !colaboradoresLoading ? (
+                <div className="flex flex-col items-center justify-center py-48 bg-slate-50/40 rounded-[5rem] border-4 border-dashed border-slate-100">
+                  <div className="w-28 h-28 bg-white rounded-[2.5rem] flex items-center justify-center mb-12 shadow-2xl shadow-slate-200 transform -rotate-6">
+                    <Info className="w-12 h-12 text-[#2fabab]" />
+                  </div>
+                  <h3 className="text-5xl font-black text-slate-900 mb-6 uppercase tracking-tighter">Sem Dados</h3>
+                  <p className="text-slate-400 text-center font-bold text-xl max-w-md uppercase tracking-tight leading-relaxed">
+                    Nenhum colaborador encontrado para esta unidade.
+                  </p>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-48 opacity-20 select-none grayscale hover:grayscale-0 transition-all duration-1000">
+                  <div className="relative mb-14">
+                    <Building className="w-48 h-48 text-slate-200" />
+                    <div className="absolute inset-0 bg-gradient-to-tr from-[#2fabab] to-[#c23c8e] mix-blend-overlay"></div>
+                  </div>
+                  <p className="text-slate-400 font-black tracking-[0.6em] uppercase text-sm">Selecione uma unidade</p>
+                </div>
+              )}
+            </section>
+          </>
+        ) : searchMode === 'treinamentos' ? (
           <>
             <div className="mb-16">
               <form onSubmit={handleTreinamentoSearch} className="relative">
@@ -461,12 +719,14 @@ const App: React.FC = () => {
                 </div>
               ) : treinamentoSearched ? (
                 <div className="flex flex-col items-center justify-center py-48 bg-slate-50/40 rounded-[5rem] border-4 border-dashed border-slate-100">
-                  <div className="w-28 h-28 bg-white rounded-[2.5rem] flex items-center justify-center mb-12 shadow-2xl shadow-slate-200 transform -rotate-6">
-                    <Info className="w-12 h-12 text-[#f08228]" />
+                  <div className={`w-28 h-28 bg-white rounded-[2.5rem] flex items-center justify-center mb-12 shadow-2xl shadow-slate-200 transform -rotate-6`}>
+                    <Info className={`w-12 h-12 ${treinamentoMensagem ? 'text-[#c23c8e]' : 'text-[#f08228]'}`} />
                   </div>
-                  <h3 className="text-5xl font-black text-slate-900 mb-6 uppercase tracking-tighter">Não Encontrado</h3>
-                  <p className="text-slate-400 text-center font-bold text-xl max-w-md uppercase tracking-tight leading-relaxed">
-                    Nenhum colaborador localizado com esse nome.
+                  <h3 className="text-5xl font-black text-slate-900 mb-6 uppercase tracking-tighter">
+                    {treinamentoMensagem ? 'Sem Treinamentos' : 'Não Encontrado'}
+                  </h3>
+                  <p className="text-slate-400 text-center font-bold text-xl max-w-lg uppercase tracking-tight leading-relaxed">
+                    {treinamentoMensagem ?? 'Nenhum colaborador localizado com esse nome.'}
                   </p>
                 </div>
               ) : (

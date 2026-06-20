@@ -75,6 +75,43 @@
       background-color: var(--brand-purple);
     }
 
+    @media print {
+      body * { visibility: hidden; }
+      #print-area, #print-area * { visibility: visible; }
+      #print-area {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%;
+        padding: 0;
+      }
+      .no-print { display: none !important; }
+      @page { margin: 1.2cm; size: A4; }
+
+      /* Impede quebra dentro dos cards */
+      #print-area > div > div {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      /* Garante que cada card fique inteiro */
+      #print-area .bg-white {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      /* Remove sombras e animações no print */
+      #print-area * {
+        animation: none !important;
+        box-shadow: none !important;
+      }
+
+      .border-red-400 {
+        border-color: #f87171 !important;
+        border-width: 2px !important;
+        border-style: solid !important;
+      }
+    }
+
     @keyframes float {
 
       0%,
