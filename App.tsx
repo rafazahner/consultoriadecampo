@@ -1,12 +1,11 @@
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Search, X, Building, Info, Loader2, AlertCircle, ChevronRight, UserSearch, RefreshCw, GraduationCap, BookOpen, CheckCircle2, Clock, PlayCircle, TrendingUp, MapPin, User, FileDown } from 'lucide-react';
+import { Search, X, Building, Info, Loader2, AlertCircle, ChevronRight, UserSearch, RefreshCw, GraduationCap, BookOpen, CheckCircle2, Clock, PlayCircle, TrendingUp, MapPin, User, FileDown, Calculator, Send, CalendarClock } from 'lucide-react';
 import { Unit } from './types';
 import { UnitCard } from './components/UnitCard';
 import { containsSearchTerm } from './utils/searchUtils';
 
-const MASCOTE_URL = "https://i.postimg.cc/4y5Y9L0H/Gemini-Generated-Image-gdyamxgdyamxgdya-removebg-preview.png";
-const LOGO_URL = "https://i.postimg.cc/HLySLdXq/Captura_de_tela_2026_01_27_163949.png";
+const LOGO_URL = "/logo.png";
 
 interface TreinamentoRetorno {
   'Usuário': string;
@@ -41,7 +40,17 @@ const App: React.FC = () => {
   const [unidades, setUnidades] = useState<Unit[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchMode, setSearchMode] = useState<'unidade' | 'consultor' | 'treinamentos' | 'treinamentos-unidade'>('unidade');
+  const [searchMode, setSearchMode] = useState<'unidade' | 'consultor' | 'treinamentos' | 'treinamentos-unidade' | 'calculadora-disparo'>('unidade');
+
+  const [calcAtivos, setCalcAtivos] = useState('');
+  const [calcDataInicio, setCalcDataInicio] = useState('');
+  const [calcHoraInicio, setCalcHoraInicio] = useState('07:00');
+  const [calcResultado, setCalcResultado] = useState<{
+    fimData: string;
+    fimHora: string;
+    totalDias: number;
+    ultimoDiaDisparos: number;
+  } | null>(null);
 
   const [query, setQuery] = useState('');
   const [submittedQuery, setSubmittedQuery] = useState('');
@@ -271,6 +280,66 @@ const App: React.FC = () => {
     setShowSuggestions(true);
   };
 
+  const JANELA_INICIO_MIN = 7 * 60; // 07:00
+  const JANELA_FIM_MIN = 23 * 60 + 30; // 23:30
+  const INTERVALO_MIN = 4;
+
+  const handleCalcularDisparo = (e?: React.FormEvent) => {
+    e?.preventDefault();
+    const ativos = parseInt(calcAtivos, 10);
+    if (!ativos || ativos <= 0 || !calcDataInicio || !calcHoraInicio) {
+      setCalcResultado(null);
+      return;
+    }
+
+    const [horaIni, minIni] = calcHoraInicio.split(':').map(Number);
+    let minutoAtualDoDia = horaIni * 60 + minIni;
+
+    // Se o horário de início estiver fora da janela do dia, avança para a janela válida
+    if (minutoAtualDoDia < JANELA_INICIO_MIN) minutoAtualDoDia = JANELA_INICIO_MIN;
+
+    let diaOffset = minutoAtualDoDia > JANELA_FIM_MIN ? 1 : 0;
+    if (diaOffset === 1) minutoAtualDoDia = JANELA_INICIO_MIN;
+
+    let disparosRestantes = ativos;
+    let ultimoDiaDisparos = 0;
+    let minutoUltimoDisparo = minutoAtualDoDia;
+
+    while (disparosRestantes > 0) {
+      const disparosPossiveisNoDia = Math.floor((JANELA_FIM_MIN - minutoAtualDoDia) / INTERVALO_MIN) + 1;
+
+      if (disparosRestantes <= disparosPossiveisNoDia) {
+        minutoUltimoDisparo = minutoAtualDoDia + (disparosRestantes - 1) * INTERVALO_MIN;
+        ultimoDiaDisparos = disparosRestantes;
+        disparosRestantes = 0;
+      } else {
+        disparosRestantes -= disparosPossiveisNoDia;
+        diaOffset += 1;
+        minutoAtualDoDia = JANELA_INICIO_MIN;
+      }
+    }
+
+    const dataBase = new Date(`${calcDataInicio}T00:00:00`);
+    dataBase.setDate(dataBase.getDate() + diaOffset);
+
+    const horaFim = Math.floor(minutoUltimoDisparo / 60);
+    const minFim = minutoUltimoDisparo % 60;
+
+    setCalcResultado({
+      fimData: dataBase.toLocaleDateString('pt-BR'),
+      fimHora: `${String(horaFim).padStart(2, '0')}:${String(minFim).padStart(2, '0')}`,
+      totalDias: diaOffset + 1,
+      ultimoDiaDisparos,
+    });
+  };
+
+  const handleCalcularDisparoClear = () => {
+    setCalcAtivos('');
+    setCalcDataInicio('');
+    setCalcHoraInicio('07:00');
+    setCalcResultado(null);
+  };
+
   return (
     <div className="min-h-screen bg-white lg:flex">
       {/* LOADING POPUP */}
@@ -283,22 +352,59 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/* SIDEBAR: Pantone Themed Branding */}
-      <aside className="hidden lg:flex lg:w-[480px] xl:w-[580px] bg-gradient-to-br from-[#2fabab]/5 via-[#c23c8e]/5 to-[#f08228]/5 border-r border-slate-100 relative lg:h-screen lg:sticky lg:top-0 flex-col items-center justify-center p-8 overflow-hidden">
-        {/* Glow Effects using exact Pantone palette */}
-        <div className="absolute -top-24 -left-24 w-96 h-96 bg-[#2fabab]/15 rounded-full blur-[100px]"></div>
-        <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-[#f08228]/15 rounded-full blur-[100px]"></div>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-[#c23c8e]/10 rounded-full blur-[80px]"></div>
+      {/* SIDEBAR: Left Navigation Menu */}
+      <aside className="hidden lg:flex lg:w-72 xl:w-80 bg-gradient-to-br from-[#1a0f24] via-[#2a1030] to-[#3a1240] border-r border-slate-100 relative lg:h-screen lg:sticky lg:top-0 flex-col overflow-hidden">
+        <div className="relative z-10 flex flex-col h-full">
+          <div className="px-8 pt-10 pb-8 border-b border-white/10 flex items-center justify-center">
+            <img
+              src={LOGO_URL}
+              alt="Ultra Academia"
+              className="h-36 w-auto object-contain"
+            />
+          </div>
 
-        <div className="relative z-10 w-full max-w-[440px] animate-float">
-          <img
-            src={MASCOTE_URL}
-            alt="Personagem Ultra"
-            className="w-full h-auto drop-shadow-[0_45px_45px_rgba(47,171,171,0.3)] transition-transform hover:scale-105 duration-1000"
-          />
+          <div className="px-8 pt-8 pb-3">
+            <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em]">Navegação</span>
+          </div>
+
+          <nav className="flex flex-col gap-1 px-4">
+            <button
+              onClick={() => { setSearchMode('unidade'); handleClear(); }}
+              className={`flex items-center gap-4 px-4 py-3.5 rounded-2xl text-base font-bold transition-all duration-300 ${searchMode === 'unidade' ? 'bg-white/10 text-white border-l-4 border-[#2fabab]' : 'text-white/60 hover:text-white hover:bg-white/5 border-l-4 border-transparent'}`}
+            >
+              <Building className="w-5 h-5" />
+              Unidades
+            </button>
+            <button
+              onClick={() => { setSearchMode('consultor'); handleClear(); }}
+              className={`flex items-center gap-4 px-4 py-3.5 rounded-2xl text-base font-bold transition-all duration-300 ${searchMode === 'consultor' ? 'bg-white/10 text-white border-l-4 border-[#c23c8e]' : 'text-white/60 hover:text-white hover:bg-white/5 border-l-4 border-transparent'}`}
+            >
+              <UserSearch className="w-5 h-5" />
+              Consultores
+            </button>
+            <button
+              onClick={() => { setSearchMode('treinamentos'); handleClear(); }}
+              className={`flex items-center gap-4 px-4 py-3.5 rounded-2xl text-base font-bold transition-all duration-300 ${searchMode === 'treinamentos' ? 'bg-white/10 text-white border-l-4 border-[#f08228]' : 'text-white/60 hover:text-white hover:bg-white/5 border-l-4 border-transparent'}`}
+            >
+              <GraduationCap className="w-5 h-5" />
+              Treinamentos Colaborador
+            </button>
+            <button
+              onClick={() => { setSearchMode('treinamentos-unidade'); handleClear(); fetchUnidades(); }}
+              className={`flex items-center gap-4 px-4 py-3.5 rounded-2xl text-base font-bold transition-all duration-300 ${searchMode === 'treinamentos-unidade' ? 'bg-white/10 text-white border-l-4 border-[#2fabab]' : 'text-white/60 hover:text-white hover:bg-white/5 border-l-4 border-transparent'}`}
+            >
+              <Building className="w-5 h-5" />
+              Treinamentos Unidades
+            </button>
+            <button
+              onClick={() => { setSearchMode('calculadora-disparo'); handleCalcularDisparoClear(); }}
+              className={`flex items-center gap-4 px-4 py-3.5 rounded-2xl text-base font-bold transition-all duration-300 ${searchMode === 'calculadora-disparo' ? 'bg-white/10 text-white border-l-4 border-[#c23c8e]' : 'text-white/60 hover:text-white hover:bg-white/5 border-l-4 border-transparent'}`}
+            >
+              <Calculator className="w-5 h-5" />
+              Calculadora de Disparo
+            </button>
+          </nav>
         </div>
-
-
       </aside>
 
       {/* MAIN: Search Engine */}
@@ -306,55 +412,15 @@ const App: React.FC = () => {
         {/* Header content skipped for brevity... */}
         <header className="mb-16">
           <div className="flex flex-col sm:flex-row sm:items-center gap-8 mb-14">
-            <div className="flex items-center gap-5">
-              <div className="relative group">
-                <img
-                  src={LOGO_URL}
-                  alt="Ultra Academia"
-                  className="h-16 sm:h-28 w-auto object-contain transform group-hover:scale-105 transition-transform duration-500"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 sm:ml-auto">
-            <button
-              onClick={fetchData}
-              disabled={loading}
-              title="Atualizar dados"
-              className="flex items-center gap-2 px-4 py-3 bg-slate-100/80 border border-slate-200 rounded-[1.2rem] text-slate-500 hover:text-[#2fabab] hover:border-[#2fabab] transition-all duration-300 disabled:opacity-50"
-            >
-              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            </button>
-            <div className="flex p-1.5 bg-slate-100/80 backdrop-blur-sm rounded-[1.6rem] w-fit border border-slate-200 shadow-inner">
+            <div className="sm:ml-auto">
               <button
-                onClick={() => { setSearchMode('unidade'); handleClear(); }}
-                className={`flex items-center gap-2 px-4 py-2 sm:px-8 sm:py-4 rounded-[1.2rem] text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all duration-300 ${searchMode === 'unidade' ? 'bg-white text-[#2fabab] shadow-xl shadow-[#2fabab]/15 border border-slate-100' : 'text-slate-500 hover:text-slate-700'}`}
+                onClick={fetchData}
+                disabled={loading}
+                title="Atualizar dados"
+                className="flex items-center gap-2 px-4 py-3 bg-slate-100/80 border border-slate-200 rounded-[1.2rem] text-slate-500 hover:text-[#2fabab] hover:border-[#2fabab] transition-all duration-300 disabled:opacity-50"
               >
-                <Building className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
-                Unidades
+                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
               </button>
-              <button
-                onClick={() => { setSearchMode('consultor'); handleClear(); }}
-                className={`flex items-center gap-2 px-4 py-2 sm:px-8 sm:py-4 rounded-[1.2rem] text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all duration-300 ${searchMode === 'consultor' ? 'bg-white text-[#c23c8e] shadow-xl shadow-[#c23c8e]/15 border border-slate-100' : 'text-slate-500 hover:text-slate-700'}`}
-              >
-                <UserSearch className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
-                Consultores
-              </button>
-              <button
-                onClick={() => { setSearchMode('treinamentos'); handleClear(); }}
-                className={`flex items-center gap-2 px-4 py-2 sm:px-8 sm:py-4 rounded-[1.2rem] text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all duration-300 ${searchMode === 'treinamentos' ? 'bg-white text-[#f08228] shadow-xl shadow-[#f08228]/15 border border-slate-100' : 'text-slate-500 hover:text-slate-700'}`}
-              >
-                <GraduationCap className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
-                Treinamentos Colaborador
-              </button>
-              <button
-                onClick={() => { setSearchMode('treinamentos-unidade'); handleClear(); fetchUnidades(); }}
-                className={`flex items-center gap-2 px-4 py-2 sm:px-8 sm:py-4 rounded-[1.2rem] text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all duration-300 ${searchMode === 'treinamentos-unidade' ? 'bg-white text-[#2fabab] shadow-xl shadow-[#2fabab]/15 border border-slate-100' : 'text-slate-500 hover:text-slate-700'}`}
-              >
-                <Building className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
-                Treinamentos Unidades
-              </button>
-            </div>
             </div>
           </div>
 
@@ -364,6 +430,8 @@ const App: React.FC = () => {
                 <>Treinamentos <br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-[#f08228] via-[#c23c8e] to-[#f08228]">Colaborador</span></>
               ) : searchMode === 'treinamentos-unidade' ? (
                 <>Treinamentos <br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-[#2fabab] via-[#c23c8e] to-[#2fabab]">Unidades</span></>
+              ) : searchMode === 'calculadora-disparo' ? (
+                <>Calculadora <br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-[#c23c8e] via-[#f08228] to-[#c23c8e]">de Disparo</span></>
               ) : (
                 <>Pesquisa <br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-[#2fabab] via-[#c23c8e] to-[#f08228]">Consultoria de Campo</span></>
               )}
@@ -373,7 +441,104 @@ const App: React.FC = () => {
         </header>
 
         {/* SEARCH BOX — modo treinamentos */}
-        {searchMode === 'treinamentos-unidade' ? (
+        {searchMode === 'calculadora-disparo' ? (
+          <section className="flex-grow pb-24">
+            <form onSubmit={handleCalcularDisparo} className="bg-white rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-100 p-8 sm:p-12 mb-10">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+                <div>
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-3">Nº de Ativos da Unidade</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={calcAtivos}
+                    onChange={(e) => setCalcAtivos(e.target.value)}
+                    placeholder="Ex: 350"
+                    className="w-full px-6 py-5 bg-slate-50 border-[3px] border-slate-50 rounded-[1.5rem] text-slate-900 font-black text-xl focus:outline-none focus:border-[#c23c8e] focus:ring-4 focus:ring-[#c23c8e]/10 focus:bg-white transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-3">Data de Início</label>
+                  <input
+                    type="date"
+                    value={calcDataInicio}
+                    onChange={(e) => setCalcDataInicio(e.target.value)}
+                    className="w-full px-6 py-5 bg-slate-50 border-[3px] border-slate-50 rounded-[1.5rem] text-slate-900 font-black text-xl focus:outline-none focus:border-[#c23c8e] focus:ring-4 focus:ring-[#c23c8e]/10 focus:bg-white transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-3">Hora de Início</label>
+                  <input
+                    type="time"
+                    value={calcHoraInicio}
+                    onChange={(e) => setCalcHoraInicio(e.target.value)}
+                    className="w-full px-6 py-5 bg-slate-50 border-[3px] border-slate-50 rounded-[1.5rem] text-slate-900 font-black text-xl focus:outline-none focus:border-[#c23c8e] focus:ring-4 focus:ring-[#c23c8e]/10 focus:bg-white transition-all"
+                  />
+                </div>
+              </div>
+
+              <p className="text-slate-400 font-bold text-sm mb-8">
+                Janela de disparo diária: <span className="text-slate-700">07:00 às 23:30</span> · Intervalo entre disparos: <span className="text-slate-700">4 minutos</span>
+              </p>
+
+              <div className="flex items-center gap-4">
+                <button
+                  type="submit"
+                  className="flex items-center gap-3 bg-[#c23c8e] hover:bg-[#a63279] shadow-2xl shadow-[#c23c8e]/30 text-white font-black py-4 px-10 rounded-[1.5rem] transition-all active:scale-95 text-sm tracking-[0.2em] uppercase italic"
+                >
+                  <Calculator className="w-5 h-5" />
+                  Calcular
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCalcularDisparoClear}
+                  className="text-slate-400 hover:text-slate-600 font-black text-xs uppercase tracking-widest px-6 py-4 transition-colors"
+                >
+                  Limpar
+                </button>
+              </div>
+            </form>
+
+            {calcResultado ? (
+              <div className="animate-in fade-in slide-in-from-bottom-10 duration-700 bg-white rounded-[2.5rem] border border-slate-100 shadow-2xl shadow-slate-100 overflow-hidden">
+                <div className="h-3 bg-gradient-to-r from-[#c23c8e] via-[#f08228] to-[#c23c8e]" />
+                <div className="p-8 sm:p-12">
+                  <div className="flex items-center gap-6 mb-10 pb-10 border-b border-slate-100">
+                    <div className="w-16 h-16 rounded-[1.5rem] bg-[#c23c8e]/10 flex items-center justify-center flex-shrink-0">
+                      <Send className="w-8 h-8 text-[#c23c8e]" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] mb-1">Resultado do Cálculo</p>
+                      <p className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tighter">Disparo será concluído</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="bg-[#c23c8e]/5 border border-[#c23c8e]/15 rounded-[1.5rem] p-6 flex flex-col items-center gap-2">
+                      <CalendarClock className="w-7 h-7 text-[#c23c8e]" />
+                      <span className="text-2xl font-black text-slate-900">{calcResultado.fimData}</span>
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Data Final</span>
+                    </div>
+                    <div className="bg-[#f08228]/5 border border-[#f08228]/15 rounded-[1.5rem] p-6 flex flex-col items-center gap-2">
+                      <Clock className="w-7 h-7 text-[#f08228]" />
+                      <span className="text-2xl font-black text-slate-900">{calcResultado.fimHora}</span>
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Hora do Último Disparo</span>
+                    </div>
+                    <div className="bg-[#2fabab]/5 border border-[#2fabab]/15 rounded-[1.5rem] p-6 flex flex-col items-center gap-2">
+                      <BookOpen className="w-7 h-7 text-[#2fabab]" />
+                      <span className="text-2xl font-black text-slate-900">{calcResultado.totalDias}</span>
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">{calcResultado.totalDias === 1 ? 'Dia Necessário' : 'Dias Necessários'}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-32 opacity-20 select-none grayscale hover:grayscale-0 transition-all duration-1000">
+                <Calculator className="w-40 h-40 text-slate-200 mb-10" />
+                <p className="text-slate-400 font-black tracking-[0.4em] uppercase text-sm">Preencha os dados e calcule</p>
+              </div>
+            )}
+          </section>
+        ) : searchMode === 'treinamentos-unidade' ? (
           <>
             {/* POPUP carregando unidades */}
             {unidadesLoading && (
