@@ -407,8 +407,47 @@ const App: React.FC = () => {
         </div>
       </aside>
 
+      {/* BOTTOM APP BAR: Mobile Navigation Menu */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 flex items-stretch justify-around bg-[#1a0f24] border-t border-white/10 pb-[env(safe-area-inset-bottom)]">
+        <button
+          onClick={() => { setSearchMode('unidade'); handleClear(); }}
+          className={`flex flex-col items-center justify-center gap-1 flex-1 py-2.5 text-[10px] font-black uppercase tracking-tight transition-colors ${searchMode === 'unidade' ? 'text-[#2fabab]' : 'text-white/50'}`}
+        >
+          <Building className="w-5 h-5" />
+          Unidades
+        </button>
+        <button
+          onClick={() => { setSearchMode('consultor'); handleClear(); }}
+          className={`flex flex-col items-center justify-center gap-1 flex-1 py-2.5 text-[10px] font-black uppercase tracking-tight transition-colors ${searchMode === 'consultor' ? 'text-[#c23c8e]' : 'text-white/50'}`}
+        >
+          <UserSearch className="w-5 h-5" />
+          Consultor
+        </button>
+        <button
+          onClick={() => { setSearchMode('treinamentos'); handleClear(); }}
+          className={`flex flex-col items-center justify-center gap-1 flex-1 py-2.5 text-[10px] font-black uppercase tracking-tight transition-colors ${searchMode === 'treinamentos' ? 'text-[#f08228]' : 'text-white/50'}`}
+        >
+          <GraduationCap className="w-5 h-5" />
+          Treinam.
+        </button>
+        <button
+          onClick={() => { setSearchMode('treinamentos-unidade'); handleClear(); fetchUnidades(); }}
+          className={`flex flex-col items-center justify-center gap-1 flex-1 py-2.5 text-[10px] font-black uppercase tracking-tight transition-colors ${searchMode === 'treinamentos-unidade' ? 'text-[#2fabab]' : 'text-white/50'}`}
+        >
+          <Building className="w-5 h-5" />
+          Unidade
+        </button>
+        <button
+          onClick={() => { setSearchMode('calculadora-disparo'); handleCalcularDisparoClear(); }}
+          className={`flex flex-col items-center justify-center gap-1 flex-1 py-2.5 text-[10px] font-black uppercase tracking-tight transition-colors ${searchMode === 'calculadora-disparo' ? 'text-[#c23c8e]' : 'text-white/50'}`}
+        >
+          <Calculator className="w-5 h-5" />
+          Disparo
+        </button>
+      </nav>
+
       {/* MAIN: Search Engine */}
-      <main className="flex-1 min-h-screen flex flex-col p-4 sm:p-8 lg:p-12 xl:p-24">
+      <main className="flex-1 min-h-screen flex flex-col p-4 sm:p-8 lg:p-12 xl:p-24 pb-24 lg:pb-12">
         {/* Header content skipped for brevity... */}
         <header className="mb-16">
           <div className="flex flex-col sm:flex-row sm:items-center gap-8 mb-14">
